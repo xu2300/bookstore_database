@@ -1,0 +1,20 @@
+File Descriptions:
+1. BitsNBooks.sqlite
+   Database binary file.
+   Open this file in FireFox SQLite Manager to use our Bits&Books Database.
+
+2. SQL_CREATE.sql
+   Database creation file.
+   You can also use our Bits&Books Database by create the database from
+   scratch. Create a new empty database file in SQLite Manager and run
+   the scripts in this file. These scripts will automatically create the
+   schema of the database.
+
+2. *.cvs:
+   Data files.
+   After the database is created, import these cvs files into the database
+   to import the data. The SQLite manager will automatically infer the
+   corresponding table.
+
+3. SQL_INSERT_DELETE.sql and SQL_QUERIES.sql
+   Code of the queries from the manual.

@@ -1,0 +1,130 @@
+/*
+ * Create Tables
+ */
+CREATE TABLE AUTHOR_ARTIST (
+a_ID VARCHAR(20) PRIMARY KEY NOT NULL,
+first_name VARCHAR(15) NOT NULL,
+last_name VARCHAR(15) NOT NULL);
+
+CREATE TABLE CUSTOMER (
+customer_ID CHAR(10) NOT NULL,
+first_name VARCHAR(15) NOT NULL,
+last_name VARCHAR(15) NOT NULL,
+email VARCHAR(30) NOT NULL,
+PRIMARY KEY (customer_ID));
+
+CREATE TABLE PUBLISHER (
+publisher_name VARCHAR(30) NOT NULL);
+
+CREATE TABLE SOFTWARE (
+soft_ID INT(8) PRIMARY KEY NOT NULL,
+soft_category VARCHAR(20) NOT NULL,
+barcode CHAR(12) NOT NULL);
+
+CREATE TABLE STORE(
+store_ID CHAR(10) NOT NULL,
+store_name VARCHAR(30) NOT NULL,
+zip_code CHAR(5) NOT NULL,
+country VARCHAR(20) NOT NULL);
+
+CREATE TABLE ITEM (
+barcode CHAR(12) NOT NULL,
+item_name VARCHAR(50) NOT NULL,
+aisle INT NOT NULL,
+bin INT NOT NULL,
+price FLOAT(5, 2) NOT NULL,
+publisher_name VARCHAR(30) NOT NULL,
+PRIMARY KEY (barcode)
+FOREIGN KEY (publisher_name) REFERENCES PUBLISHER (pulbisher_name));
+
+CREATE TABLE BOOK (
+barcode CHAR(12) NOT NULL,
+book_category VARCHAR(20) NOT NULL,
+ISBN CHAR(22) NOT NULL,
+PRIMARY KEY(ISBN),
+FOREIGN KEY(barcode) REFERENCES ITEM( barcode));
+
+CREATE TABLE CD_DVD (
+barcode CHAR(12)NOT NULL,
+genre VARCHAR(20) NOT NULL,
+disk_ID VARCHAR(30) NOT NULL,
+PRIMARY KEY(barcode,disk_ID)
+FOREIGN KEY(barcode) REFERENCES ITEM(barcode));
+
+CREATE TABLE JOURNAL(
+ISSN INT(8) NOT NULL,
+issue VARCHAR(20) NOT NULL,
+barcode CHAR(12) NOT NULL,
+PRIMARY KEY(ISSN),
+FOREIGN KEY(barcode) REFERENCES ITEM( barcode));
+
+CREATE TABLE TRANSACTIONS (
+transaction_ID CHAR(20) NOT NULL,
+time DATE NOT NULL,
+customer_ID CHAR(10) NOT NULL,
+PRIMARY KEY(transaction_ID)
+FOREIGN KEY(customer_ID) REFERENCES CUSTOMER(customer_ID));
+
+CREATE TABLE STORES(
+store_ID CHAR(10) NOT NULL,
+barcode CHAR(12) NOT NULL,
+inventory VARCHAR(20) NOT NULL,
+sold INT NOT NULL,
+FOREIGN KEY(store_ID) REFERENCES STORE(store_ID),
+FOREIGN KEY(barcode) REFERENCES ITEM(barcode));
+
+CREATE TABLE WRITTEN_BY (
+ISBN CHAR(22) NOT NULL,
+a_ID VARCHAR(20) NOT NULL,
+FOREIGN KEY (ISBN) REFERENCES BOOK(ISBN),
+FOREIGN KEY (a_ID) REFERENCES AUTHOR_ARTIST(a_ID));
+
+CREATE TABLE COMPOSED_BY (
+disk_ID VARCHAR(30) NOT NULL,
+a_ID VARCHAR(20) NOT NULL,
+FOREIGN KEY (disk_ID) REFERENCES CD_DVD(disk_ID),
+FOREIGN KEY (a_ID) REFERENCES AUTHOR_ARTIST(a_ID));
+
+CREATE TABLE CONTAINED_IN (
+quantity INT NOT NULL,
+barcode CHAR(12) NOT NULL,
+transaction_ID INT NOT NULL,
+FOREIGN KEY (barcode) REFERENCES ITEM(barcode),
+FOREIGN KEY (transaction_ID) REFERENCES TRANSACTIONS(transaction_ID));
+
+/*
+ * Create Views
+ */
+CREATE VIEW PopularAuthor
+AS
+SELECT AA.a_ID AS a_ID, first_name AS fname, last_name AS lname, SUM(quantity) AS sold
+FROM AUTHOR_ARTIST AS AA, CONTAINED_IN AS CI, WRITTEN_BY AS WB, BOOK AS B
+WHERE AA.a_ID = WB.a_ID
+AND WB.ISBN = B.ISBN
+AND B.barcode = CI.barcode
+GROUP BY fname, lname
+ORDER BY sold DESC;
+
+CREATE VIEW PopularGenres
+AS
+SELECT  CD.genre AS genre, SUM(quantity) AS sold
+FROM CD_DVD AS CD, CONTAINED_IN AS CI
+WHERE CD.barcode = CI.barcode
+GROUP BY genre
+ORDER BY sold DESC;
+
+/*
+ * Create Indexes
+ */
+CREATE INDEX "indexAALastName" ON "AUTHOR_ARTIST" ("last_name" ASC);
+CREATE INDEX "indexBookCategory" ON "BOOK" ("book_category" ASC);
+CREATE INDEX "indexCDDVDGenre" ON "CD_DVD" ("genre" ASC);
+CREATE INDEX "indexComposedByAuthor" ON "COMPOSED_BY" ("a_ID" ASC);
+CREATE INDEX "indexContainedInQuantity" ON "CONTAINED_IN" ("quantity" ASC);
+CREATE INDEX "indexCustomerLastName" ON "CUSTOMER" ("last_name" ASC);
+CREATE INDEX "indexInventoryRange" ON "STORES" ("inventory" ASC);
+CREATE INDEX "indexItemName" ON "ITEM" ("item_name" ASC);
+CREATE INDEX "indexJournalIssue" ON "JOURNAL" ("issue" ASC);
+CREATE INDEX "indexPublisherName" ON "PUBLISHER" ("publisher_name" ASC);
+CREATE INDEX "indexSoftwareCategory" ON "SOFTWARE" ("soft_category" ASC);
+CREATE INDEX "indexTransactionTime" ON "TRANSACTIONS" ("time" ASC);
